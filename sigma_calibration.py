@@ -91,7 +91,7 @@ def sigma_from_p90_p10(target_ratio: float) -> float:
 # ---------- Example usage when run as a script ----------
 
 if __name__ == "__main__":
-    # Your typical targets
+    # typical targets
     target_gini = 1.0 / 3.0   # ≈ 0.333
     target_ratio = 4.0        # P90/P10 ≈ 4
 
@@ -101,11 +101,11 @@ if __name__ == "__main__":
     print(f"Target Gini:     {target_gini:.3f} -> sigma ≈ {sigma_gini:.4f}")
     print(f"Target P90/P10:  {target_ratio:.3f} -> sigma ≈ {sigma_ratio:.4f}")
 
-    # A simple compromise value (e.g. average the two)
+    # compromise value (e.g. average the two)
     sigma_avg = 0.5 * (sigma_gini + sigma_ratio)
     print(f"Average of both sigmas ≈ {sigma_avg:.4f}")
 
-    # Optional: show what Gini and P90/P10 that average sigma implies
+    #  show what Gini and P90/P10 that average sigma implies
     g_from_avg = gini_from_sigma(sigma_avg)
     r_from_avg = p90_p10_from_sigma(sigma_avg)
     print(f"Gini at sigma_avg:    {g_from_avg:.3f}")

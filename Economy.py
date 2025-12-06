@@ -1,14 +1,14 @@
 import numpy as np
 from Household import Household  # adjust path if needed
-from Household import Household
+
 
 class Economy:
     def __init__(self, household_number):
         self.household_number = household_number
         self.households = []
-        self.aggregate_food_baseline = 0
-        self.aggregate_food_demand_income_change = 0
-        self.aggregate_food_demand_price_change = 0
+        self.aggregate_food_baseline = 0.0
+        self.aggregate_food_demand_income_change = 0.0
+        self.aggregate_food_demand_price_change = 0.0
 
     def create_economy(self):
         """
@@ -29,13 +29,12 @@ class Economy:
 
         incomes = np.random.lognormal(mean=mu, sigma=sigma, size=self.household_number)
 
-        # Compute quartile cutoffs (Q1, median, Q3) 
+        # Compute quartile cutoffs (Q1, median, Q3)
         q25, q50, q75 = np.percentile(incomes, [25, 50, 75])
 
         households = []
 
-        # Create households with income-dependent food budget shares 
-
+        # Create households with income-dependent food budget shares
         for i in range(self.household_number):
             income = incomes[i]
 
@@ -55,7 +54,6 @@ class Economy:
                 food_budget_share = np.random.uniform(0.10, 0.20)
                 income_group = "Q4"
 
-            # --- 4. Create the Household object ---
             h = Household(
                 income=income,
                 food_budget_share=food_budget_share,
@@ -71,8 +69,7 @@ class Economy:
 
         self.households = households
 
-
-
+           
 def economy_calculations(economy, new_income=None, new_food_price=None):
     """
     Aggregate baseline and new food demand across all households.
@@ -81,7 +78,7 @@ def economy_calculations(economy, new_income=None, new_food_price=None):
     - new_food_price: if not None, used for price-change scenario
     """
 
-    # initialise aggregates (make sure these attributes exist on economy)
+    # initialise aggregates
     economy.aggregate_food_baseline = 0.0
     economy.aggregate_food_demand_income_change = 0.0
     economy.aggregate_food_demand_price_change = 0.0
@@ -94,12 +91,13 @@ def economy_calculations(economy, new_income=None, new_food_price=None):
         # if an income scenario is provided
         if new_income is not None:
             q_income = h.calculate_new_food_demand_income_change(new_income)
+            h.current_food_demand = q_income  # store for later use
             economy.aggregate_food_demand_income_change += q_income
 
         # if a price scenario is provided
         if new_food_price is not None:
             q_price = h.calculate_new_food_demand_price_change(new_food_price)
-            h.current_food_demand = q_price  # store for later use if needed
+            h.current_food_demand = q_price  # store for later use
             economy.aggregate_food_demand_price_change += q_price
 
     # return all three aggregates at the end, AFTER the loop
@@ -112,14 +110,14 @@ def economy_calculations(economy, new_income=None, new_food_price=None):
 
 def mean_income(economy):
     total_income = sum(h.income for h in economy.households)
-    mean_income = total_income / len(economy.households)
-    return mean_income
+    mean_income_value = total_income / len(economy.households)
+    return mean_income_value
+
 
 def median_income(economy):
     incomes = [h.income for h in economy.households]
-    median_income = np.median(incomes)
-    return median_income
-
+    median_income_value = np.median(incomes)
+    return median_income_value
 
 
 def demand_summary(economy):
@@ -129,12 +127,83 @@ def demand_summary(economy):
     """
     q_new = [h.current_food_demand for h in economy.households]
 
-    mean_q   = np.mean(q_new)
+    mean_q = np.mean(q_new)
     median_q = np.median(q_new)
-    std_q    = np.std(q_new)
-    total_q  = np.sum(q_new)
+    std_q = np.std(q_new)
+    total_q = np.sum(q_new)
 
     return mean_q, median_q, std_q, total_q
 
 
-        
+def build_summary_and_plot_data(economy, new_food_price):
+    """
+    Build:
+      1) Summary stats for NEW demand (for the table)
+      2) Data by income group (Q1–Q4) for the two plots:
+         - baseline vs new demand
+         - baseline vs new budget share
+
+    Assumes:
+      - economy_calculations(economy, ..., new_food_price=...) has already been called
+      - each household h has:
+          h.food_baseline_buy
+          h.current_food_demand
+          h.food_budget_share
+          h.income_group
+    """
+
+    # ---------- 1. Table summary for NEW demand ----------
+    q_new = [h.current_food_demand for h in economy.households]
+
+    mean_q = np.mean(q_new)
+    median_q = np.median(q_new)
+    std_q = np.std(q_new)
+    total_q = np.sum(q_new)
+
+    table_summary = {
+        "mean_demand": float(mean_q),
+        "median_demand": float(median_q),
+        "std_demand": float(std_q),
+        "total_demand": float(total_q),
+    }
+
+    # ---------- 2. Data by income group for plots ----------
+    groups = ["Q1", "Q2", "Q3", "Q4"]
+
+    # Prepare containers
+    plot_data = {
+        "groups": groups,
+        "baseline_demand": [],
+        "new_demand": [],
+        "baseline_budget_share": [],
+        "new_budget_share": [],
+    }
+
+    for g in groups:
+        # select households in this income group
+        group_hh = [h for h in economy.households if h.income_group == g]
+
+        if not group_hh:
+            # in case a group is empty (shouldn't happen often)
+            plot_data["baseline_demand"].append(0.0)
+            plot_data["new_demand"].append(0.0)
+            plot_data["baseline_budget_share"].append(0.0)
+            plot_data["new_budget_share"].append(0.0)
+            continue
+
+        # baseline and new demand
+        q_baseline = [h.food_baseline_buy for h in group_hh]
+        q_new_g = [h.current_food_demand for h in group_hh]
+
+        # baseline budget share is just the original food_budget_share
+        w_baseline = [h.food_budget_share for h in group_hh]
+
+        # new budget share: (new price * new quantity) / income
+        w_new = [(new_food_price * h.current_food_demand) / h.income for h in group_hh]
+
+        plot_data["baseline_demand"].append(float(np.mean(q_baseline)))
+        plot_data["new_demand"].append(float(np.mean(q_new_g)))
+        plot_data["baseline_budget_share"].append(float(np.mean(w_baseline)))
+        plot_data["new_budget_share"].append(float(np.mean(w_new)))
+
+    return table_summary, plot_data

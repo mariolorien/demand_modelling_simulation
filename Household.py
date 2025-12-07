@@ -45,7 +45,7 @@ class Household:
         Uses: Δln q = income_elasticity_food * Δln income
               q_new = q_baseline * exp(Δln q)
         """
-        ln_change_income = np.log(new_income) - np.log(self.income)  # natural log (ln)
+        ln_change_income = np.log(new_income)  # natural log (ln)
         delta_ln_q = self.income_elasticity_food * ln_change_income
         new_absolute_food_demand = self.food_baseline_buy * np.exp(delta_ln_q)
         return new_absolute_food_demand

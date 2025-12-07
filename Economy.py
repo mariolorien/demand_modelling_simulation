@@ -9,6 +9,8 @@ class Economy:
         self.aggregate_food_baseline = 0.0
         self.aggregate_food_demand_income_change = 0.0
         self.aggregate_food_demand_price_change = 0.0
+        self.income = None 
+        self.current_income = self.income
 
     def create_economy(self):
         """
@@ -89,10 +91,11 @@ def economy_calculations(economy, new_income=None, new_food_price=None):
         economy.aggregate_food_baseline += h.food_baseline_buy
 
         # if an income scenario is provided
-        if new_income is not None:
-            q_income = h.calculate_new_food_demand_income_change(new_income)
-            h.current_food_demand = q_income  # store for later use
-            economy.aggregate_food_demand_income_change += q_income
+        if new_income is not None:  # here new_income is the income_factor
+            for h in economy.households:
+                h.current_income = h.income * new_income      # NEW LINE
+                q_income = h.calculate_new_food_demand_income_change(new_income)
+                h.current_food_demand = q_income
 
         # if a price scenario is provided
         if new_food_price is not None:
@@ -199,7 +202,11 @@ def build_summary_and_plot_data(economy, new_food_price):
         w_baseline = [h.food_budget_share for h in group_hh]
 
         # new budget share: (new price * new quantity) / income
-        w_new = [(new_food_price * h.current_food_demand) / h.income for h in group_hh]
+        w_new = [
+             (new_food_price * h.current_food_demand) / h.current_income
+             for h in group_hh
+        ]
+
 
         plot_data["baseline_demand"].append(float(np.mean(q_baseline)))
         plot_data["new_demand"].append(float(np.mean(q_new_g)))

@@ -93,7 +93,7 @@ def economy_calculations(economy, new_income=None, new_food_price=None):
         # if an income scenario is provided
         if new_income is not None:  # here new_income is the income_factor
             for h in economy.households:
-                h.current_income = h.income * new_income      # NEW LINE
+                h.current_income = h.income * new_income      
                 q_income = h.calculate_new_food_demand_income_change(new_income)
                 h.current_food_demand = q_income
 

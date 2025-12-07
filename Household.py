@@ -12,6 +12,7 @@ class Household:
         food_price=1.0,
     ):
         self.income = income
+        self.current_income = income  # to track income changes
         self.food_budget_share = food_budget_share
         self.food_baseline_buy = food_baseline_buy
         self.income_elasticity_food = income_elasticity_food 

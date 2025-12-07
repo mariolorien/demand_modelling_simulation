@@ -58,7 +58,7 @@ def plot_demand_by_income_group(plot_data, new_price):
 
 def plot_budget_share_by_income_group(plot_data, new_price):
     """
-    Plot baseline vs new food budget share by income group (Q1–Q4),
+    Plot baseline vs new food budget share by income group (Q1-Q4),
     for a PRICE CHANGE scenario.
 
     Parameters
@@ -130,7 +130,7 @@ def plot_demand_by_income_group_income_change(plot_data, income_factor):
 
 def plot_budget_share_by_income_group_income_change(plot_data, income_factor):
     """
-    Plot baseline vs new food budget share by income group (Q1–Q4),
+    Plot baseline vs new food budget share by income group (Q1-Q4),
     for an INCOME CHANGE scenario.
 
     Parameters

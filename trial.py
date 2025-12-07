@@ -1,5 +1,5 @@
 """
-Just to test, to be deleted
+Just to test, to be deleted once completed 
 """
 
 from Economy import Economy, economy_calculations, demand_summary, build_summary_and_plot_data
